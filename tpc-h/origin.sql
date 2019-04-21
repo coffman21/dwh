@@ -1,4 +1,5 @@
 create schema dwh;
+SET SEARCH_PATH = 'dwh';
 
 create table PART
 (
@@ -7,9 +8,28 @@ create table PART
   MFGR        char(25),
   BRAND       char(10),
   TYPE        varchar(25),
+  SIZE        integer,
   CONTAINER   char(10),
   RETAILPRICE decimal,
   COMMENT     varchar(23)
+);
+
+create table REGION
+(
+  REGIONKEY int not null
+    primary key,
+  NAME      char(25),
+  COMMENT   varchar(152)
+);
+
+create table NATION
+(
+  NATIONKEY int not null
+    primary key,
+  NAME      char(25),
+  REGIONKEY int
+    references REGION (REGIONKEY),
+  COMMENT   varchar(152)
 );
 
 create table SUPPLIER
@@ -18,22 +38,11 @@ create table SUPPLIER
     primary key,
   NAME      char(25),
   ADDRESS   varchar(40),
-  NATIONKEY int,
+  NATIONKEY int
+    references NATION (NATIONKEY),
   PHONE     char(15),
   ACCTBAL   decimal,
   COMMENT   varchar(101)
-);
-
-create table PARTSUPP
-(
-  PARTKEY    int not null
-    references PART (PARTKEY),
-  SUPPKEY    int null
-    references SUPPLIER (SUPPKEY),
-  AVAILQUY   int,
-  SYPPLYCOST decimal,
-  COMMENT    varchar(199),
-  primary key (PARTKEY, SUPPKEY)
 );
 
 create table CUSTOMER
@@ -49,6 +58,19 @@ create table CUSTOMER
   MKTSEGMENT char(10),
   COMMENT    varchar(117)
 );
+
+create table PARTSUPP
+(
+  PARTKEY    int not null
+    references PART (PARTKEY),
+  SUPPKEY    int not null
+    references SUPPLIER (SUPPKEY),
+  AVAILQUY   int,
+  SYPPLYCOST decimal,
+  COMMENT    varchar(199),
+  primary key (PARTKEY, SUPPKEY)
+);
+
 
 create table ORDERS
 (
@@ -66,13 +88,11 @@ create table ORDERS
 
 create table LINEITEM
 (
-  ORDERKEY      int
+  ORDERKEY      int not null
     references ORDERS (ORDERKEY),
-  PARTKEY       int
-    references PART (PARTKEY),
-  SUPPKEY       int
-    references SUPPLIER (SUPPKEY),
-  LINENUMBER    int,
+  PARTKEY       int,
+  SUPPKEY       int,
+  LINENUMBER    int not null,
   QUANTITY      decimal,
   EXTENDEDPRICE decimal,
   DISCOUNT      decimal,
@@ -86,23 +106,6 @@ create table LINEITEM
   SHIPMODE      char(10),
   COMMENT       varchar(44),
   primary key (ORDERKEY, LINENUMBER),
-  foreign key (PARTKEY, SUPPKEY) references PARTSUPP
+  foreign key (PARTKEY, SUPPKEY) references PARTSUPP (PARTKEY, SUPPKEY)
 );
 
-create table NATION
-(
-  NATIONKEY int not null
-    primary key,
-  NAME      char(25),
-  REGIONKEY int
-    references REGION (REGIONKEY),
-  COMMENT   varchar(152)
-);
-
-create table REGION
-(
-  REGIONKEY int not null
-    primary key,
-  NAME      char(25),
-  COMMENT   varchar(152)
-);
